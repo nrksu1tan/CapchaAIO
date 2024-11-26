@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <div id="trialWarningModal" class="modal" tabindex="-1" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Добро пожаловать в пробную версию</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Вы используете пробную версию чата. У вас есть только 5 попыток для отправки сообщений. После этого вам будет предложено приобрести полную версию.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Понятно</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container chat-container mt-5" style="background-color: #1a1a2e; border-radius: 20px;">
+        <div class="chat-header bg-dark text-white p-3 rounded-top" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); position: relative;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>Текущая модель ИИ: GPT-3</div>
+                <button class="btn btn-outline-light" id="copyBtn">Копировать</button>
+            </div>
+            <button class="btn btn-outline-light position-absolute" style="top: 10px; right: 10px;" id="userAgreementBtn">Пользовательское соглашение</button>
+        </div>
+        <div class="chat-body bg-dark text-light p-4" id="chatBody" style="border-bottom: 2px solid #0f3460; position: relative;">
+            <!-- Chat messages will appear here -->
+        </div>
+        <div class="chat-footer d-flex p-3" style="background-color: #0f3460; border-radius: 0 0 20px 20px;">
+            <button class="btn btn-primary" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+            <input type="file" id="fileInput" accept="image/*" class="d-none">
+            <button class="btn btn-secondary ms-2" id="photoBtn"><i class="fas fa-image"></i> Отправить фото</button>
+        </div>
+    </div>
+
+    <div id="upgradeModal" class="modal" tabindex="-1" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Покупка полной версии</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Ваш пробный период истек! Для продолжения использования, пожалуйста, приобретите полную версию и получите неограниченный доступ ко всем функциям!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">Купить полную версию</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="userAgreementModal" class="modal" tabindex="-1" style="display: none;">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Пользовательское соглашение</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body">
+                    <p>By using this chat application, you agree to the following terms and conditions:</p>
+                    <p>All content, including text, images, and other media that you send or share within this application may be collected, stored, and used by the developers of the application. Additionally, such content may be shared with third parties, including but not limited to data analysis companies, partners, and affiliates for improving the application, analyzing user behavior, or any other lawful purposes.</p>
+                    <p>We value your privacy but need to collect this data to enhance your experience and maintain the quality of the application. The content shared within this application may be used to personalize future interactions, train AI models, and improve features. Please note that by continuing to use this chat application, you give your consent for these activities, including sharing content with third parties.</p>
+                    <p>Your data will be treated in accordance with industry standards, but we cannot guarantee complete security of all data transmitted. You are solely responsible for the content you provide and understand that any sensitive or personal information shared may be accessible by authorized entities, including third parties as part of our services.</p>
+                    <p>If you do not agree with these terms, you should immediately stop using this chat application. By sending a message, uploading content, or interacting with any part of this application, you indicate your acceptance of these terms.</p>
+                    <p>For any questions or concerns regarding our privacy policy or user agreement, please contact our support team.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            let messageCount = 0;
+            const maxMessages = 5;
+
+            // Show trial warning modal on page load
+            $('#trialWarningModal').modal('show');
+
+            $('#sendBtn').on('click', function() {
+                if (messageCount >= maxMessages) {
+                    $('#upgradeModal').modal('show');
+                    return;
+                }
+
+                const message = $('#userInput').val().trim();
+                if (message) {
+                    displayMessage(message, true);
+                    $('#userInput').val('');
+                    simulateAIThinking(() => {
+                        simulateAIResponse(message);
+                    });
+                    messageCount++;
+                }
+            });
+
+            $('#photoBtn').on('click', function() {
+                if (messageCount >= maxMessages) {
+                    $('#upgradeModal').modal('show');
+                    return;
+                }
+                $('#fileInput').click();
+            });
+
+            $('#fileInput').on('change', function() {
+                if (messageCount >= maxMessages) {
+                    $('#upgradeModal').modal('show');
+                    return;
+                }
+
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        displayMessage('<img src="' + e.target.result + '" class="img-fluid rounded" style="max-width: 200px;">', true);
+                        simulateAIThinking(() => {
+                            simulateAIResponse(file.name.replace(/\.[^/.]+$/, ''));
+                        });
+                    }
+                    reader.readAsDataURL(file);
+                    messageCount++;
+                }
+            });
+
+            $('#copyBtn').on('click', function() {
+                const chatContent = $('#chatBody').text();
+                navigator.clipboard.writeText(chatContent).then(() => {
+                    alert('Чат скопирован в буфер обмена!');
+                }).catch(err => {
+                    alert('Ошибка при копировании: ' + err);
+                });
+            });
+
+            $('#userAgreementBtn').on('click', function() {
+                $('#userAgreementModal').modal('show');
+            });
+
+            function displayMessage(message, isUser) {
+                const align = isUser ? 'text-end' : 'text-start';
+                const bgColor = isUser ? 'bg-primary text-white' : 'bg-info text-white';
+                const messageHTML = `
+                    <div class="my-3 ${align} message-container animate__animated animate__fadeInUp" onmouseenter="showMessageOptions(this)" onmouseleave="hideMessageOptions(this)">
+                        <div class="p-3 rounded ${bgColor} d-inline-block" style="box-shadow: 0 4px 8px rgba(15, 52, 96, 0.2);">
+                            ${message}
+                        </div>
+                        <div class="message-options" style="display: none; margin-top: 5px;">
+                            <i class="fas fa-reply mx-1"></i>
+                            <i class="fas fa-thumbs-up mx-1" onclick="showFeedback('Спасибо за ваш отзыв!')"></i>
+                            <i class="fas fa-thumbs-down mx-1" onclick="showFeedback('Спасибо за ваш отзыв!')"></i>
+                        </div>
+                    </div>
+                `;
+                $('#chatBody').append(messageHTML);
+                $('#chatBody').scrollTop($('#chatBody')[0].scrollHeight);
+            }
+
+            function simulateAIThinking(callback) {
+                const thinkingMessage = '<div class="thinking text-muted">ИИ печатает...</div>';
+                $('#chatBody').append(`<div class="my-3 text-start animate__animated animate__fadeIn">${thinkingMessage}</div>`);
+                $('#chatBody').scrollTop($('#chatBody')[0].scrollHeight);
+                setTimeout(() => {
+                    $('#chatBody .thinking').parent().remove();
+                    callback();
+                }, 1500);
+            }
+
+            function simulateAIResponse(userMessage) {
+                let aiMessage;
+                if (userMessage.startsWith('<img')) {
+                    const fileName = $('#fileInput')[0].files[0].name;
+                    aiMessage = `ИИ ответ на: ${fileName.replace(/\.[^/.]+$/, '')}`;
+                } else {
+                    aiMessage = `ИИ ответ на: ${userMessage}`;
+                }
+                displayMessage(aiMessage, false);
+            }
+        });
+
+        function showMessageOptions(messageElement) {
+            $(messageElement).find('.message-options').fadeIn(200);
+        }
+
+        function hideMessageOptions(messageElement) {
+            $(messageElement).find('.message-options').fadeOut(200);
+        }
+
+        function showFeedback(message) {
+            const feedbackElement = $(`<div class="text-success" style="position: absolute; bottom: 10px; right: 10px;">${message}</div>`);
+            $('body').append(feedbackElement);
+            feedbackElement.fadeIn(400).delay(1000).fadeOut(400, function() {
+                $(this).remove();
+            });
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #16213e;
+            color: #e94560;
+        }
+        .chat-container {
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        .chat-body {
+            height: 400px;
+            overflow-y: auto;
+        }
+        .chat-footer input[type="file"] {
+            display: none;
+        }
+        .animate__animated.animate__fadeInUp {
+            animation-duration: 0.7s;
+        }
+        /* Custom Scrollbar */
+        .chat-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-body::-webkit-scrollbar-thumb {
+            background-color: #e94560;
+            border-radius: 10px;
+        }
+        .chat-body::-webkit-scrollbar-thumb:hover {
+            background-color: #ff6b81;
+        }
+        .chat-body::-webkit-scrollbar-track {
+            background-color: #0f3460;
+        }
+        .message-options i {
+            cursor: pointer;
+            color: #e0e0e0;
+        }
+        .message-options i:hover {
+            color: #ffffff;
+        }
+        .chat-footer::before {
+            content: "Отправляя сообщение, вы соглашаетесь с пользовательским соглашением.";
+            color: #ff4c4c;
+            font-size: 0.85em;
+            display: block;
+            margin-bottom: 10px;
+        }
+    </style>
+</body>
+</html>
