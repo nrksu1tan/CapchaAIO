@@ -188,7 +188,7 @@
                     const fileName = $('#fileInput')[0].files[0].name;
                     aiMessage = `Текст из CAPTCHA: ${fileName.replace(/\.[^/.]+$/, '')}`;
                 } else {
-                    aiMessage = `Пожалуйста, отправьте изображение, на котором хорошо видна капча.`;
+                    aiMessage = `Текст из CAPTCHA: ${userMessage}`;
                 }
                 displayMessage(aiMessage, false);
             }
