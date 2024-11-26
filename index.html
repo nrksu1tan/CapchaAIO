@@ -32,7 +32,7 @@
     <div class="container chat-container mt-5" style="background-color: #1a1a2e; border-radius: 20px;">
         <div class="chat-header bg-dark text-white p-3 rounded-top" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); position: relative;">
             <div class="d-flex justify-content-between align-items-center">
-                <div>CapchAPT-4.6</div>
+                <div>captchAPT-4.6</div>
 
             </div>
             <button class="btn btn-outline-light position-absolute" style="top: 10px; right: 10px;" id="userAgreementBtn">Пользовательское соглашение</button>
@@ -186,9 +186,9 @@
                 let aiMessage;
                 if (userMessage.startsWith('<img')) {
                     const fileName = $('#fileInput')[0].files[0].name;
-                    aiMessage = `ИИ ответ на: ${fileName.replace(/\.[^/.]+$/, '')}`;
+                    aiMessage = `Текст из CAPTCHA: ${fileName.replace(/\.[^/.]+$/, '')}`;
                 } else {
-                    aiMessage = `ИИ ответ на: ${userMessage}`;
+                    aiMessage = `Пожалуйста, отправьте изображение, на котором хорошо видна капча.`;
                 }
                 displayMessage(aiMessage, false);
             }
